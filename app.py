@@ -20,3 +20,9 @@ def login():
 def register():
     return render_template("home.html")
 
+
+@app.route("/map")
+def map_page():
+    return render_template("map.html")
+
+

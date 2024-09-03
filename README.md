@@ -32,3 +32,7 @@ Players starting locations will need to be algorigthmed out a little bit - they 
 - Start with SQLite and see how we go
 - Front end will be suprisingly simple I think - bootstrap, Openlayers for handling the mapping
 
+
+## Running todo
+Tried to move from openlayers to maplibre gl js, but that will require a lot more backend work to get the projection the way I want it, so reverted.  Maplibre gl js does play much nicer with being contained inside bootstrap divs/containers though... might be worth it...
+
