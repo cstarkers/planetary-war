@@ -227,17 +227,21 @@ def get_normalisation_matrices(A: Vertex, B: Vertex, C: Vertex):
 
     trans_vec=np.array([[-A.x], [-A.y], [-A.z]])
 
+    A_after_trans=A.to_np_vec()+trans_vec
+    B_after_trans=B.to_np_vec()+trans_vec
+    C_after_trans=C.to_np_vec()+trans_vec
+
     # Rotation 1 - rotating b into  the xy plane, around the y axis
     # Trust me, I used paper and a pen.
-    cos_theta=B.x/(sqrt(B.z**2+B.x**2))
-    sin_theta=B.z/(sqrt(B.z**2+B.x**2))
+    cos_theta=B_after_trans[0][0]/(sqrt(B_after_trans[2][0]**2+B_after_trans[0][0]**2))
+    sin_theta=B_after_trans[2][0]/(sqrt(B_after_trans[2][0]**2+B_after_trans[0][0]**2))
     rot1_matr=np.array([[ cos_theta,   0.,   sin_theta ],
                         [0.,            1.,   0.         ],
                         [-sin_theta,   0.,   cos_theta ]])
     
     
-    B_after_Rot_1 = rot1_matr @ B.to_np_vec()   # @ is a spefical infix operator for mat mul!
-    C_after_Rot_1 = rot1_matr @ C.to_np_vec()
+    B_after_Rot_1 = rot1_matr @ B_after_trans   # @ is a spefical infix operator for mat mul!
+    C_after_Rot_1 = rot1_matr @ C_after_trans
     # A should be unaffected as it's at the origin.
 
 
@@ -255,28 +259,21 @@ def get_normalisation_matrices(A: Vertex, B: Vertex, C: Vertex):
     C_after_Rot_2= rot2_matr @ C_after_Rot_1
     # again, A should be unaffected
 
+    PC=(sqrt(3)*l)/2 
+    sin_beta=C_after_Rot_2[2][0]/PC
+    cos_beta=C_after_Rot_2[1][0]/PC
 
-    # at this point I realised I was REALLY overcomplicating my sin and cos avoidance techniques...
-    # should have spent more time with the pen and paper doing som SOH CAH TOA shit...
-    # all though it turns out diagrams are hard when their is a third dimension, and it fucked me and took me like 3 hours of debugging to figure out why
-    sin_beta=C_after_Rot_2[2][0]/sqrt(3)
-    cos_beta=C_after_Rot_2[1][0]/sqrt(3)
-
- 
 
     rot3_matr=np.array([[ 1,           0,            0      ],
-                        [ 0,           cos_beta,  -sin_beta ],
-                        [ 0,           sin_beta,  cos_beta ]])
+                        [ 0,           cos_beta,  sin_beta ],
+                        [ 0,           -sin_beta,  cos_beta ]])
     
-
     #B should really be unaffected, but oh well, lets check
     B_after_Rot_3= rot3_matr @ B_after_Rot_2
     C_after_Rot_3 = rot3_matr @ C_after_Rot_2
 
 
-  
-
-    overall_rot=rot3_matr @ rot2_matr @ rot1_matr
+    overall_rot= rot3_matr @ rot2_matr @ rot1_matr
     denormalise_rot = np.linalg.inv(overall_rot)
     denormalise_trans = -1 * trans_vec
     return  (denormalise_rot, denormalise_trans)
@@ -378,8 +375,10 @@ def test_plot_normalisation(m,n):
 
 
 def test_plot_denormalisation():
-    # jsut a little test
+    # tests whether get_denornalistaion_matrices can reconstruct a rotation and trnaslation matrix
     test_trans=np.array([[4], [3.5], [17]])
+    
+    # this equates to 37 degrees around [0.7, 0.3, 0.648...]
     test_denorm_rot= np.array([[0.8973041, -0.3477342,  0.2718939],
                         [0.4323072,  0.8167583, -0.3821208],
                         [-0.0891951,  0.4604203,  0.8832086 ]])
@@ -387,19 +386,8 @@ def test_plot_denormalisation():
     test_B=Vertex((test_denorm_rot @ np.array([[2],[0],[0]])) + test_trans)
     test_C=Vertex((test_denorm_rot @ np.array([[1],[sqrt(3)],[0]])) + test_trans)
 
-    
-
-    print(f"A: {test_A}")
-    print(f"B: {test_B}")
-    print(f"C: {test_C}")
-
-
-    print(f"AB: {test_A.distance(test_B)}")
-    print(f"BC: {test_B.distance(test_C)}")
-    print(f"CA: {test_C.distance(test_A)}")
-
+    # sometimes you gotta test the test
     assert(is_good_triangle((test_A, test_B, test_C)))
-
 
     calced_denorm_rot, calced_trans = get_normalisation_matrices(test_A, test_B, test_C)
 
