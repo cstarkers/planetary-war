@@ -33,6 +33,17 @@ Players starting locations will need to be algorigthmed out a little bit - they 
 - Front end will be suprisingly simple I think - bootstrap, Openlayers for handling the mapping
 
 
+## The hex layout
+
+The hexes are a Goldberg Polyhedron.
+
+utils/hexer.py contains code for defining the Goldberg Polyhedron, projecting it onto geodetic coordinates, and building the reuslting geojson.
+
+
 ## Running todo
 Tried to move from openlayers to maplibre gl js, but that will require a lot more backend work to get the projection the way I want it, so reverted.  Maplibre gl js does play much nicer with being contained inside bootstrap divs/containers though... might be worth it...
 
+Actually openlayers doesn't do what I want with the prjection and viewport either - I can get openlayers to do non-mercator projections, but I can't get it to do globe-like scrolling.  The best option for doing that looks like OpenGlobus or Cesium, both of which are a bit more than I want to deal with right now.  So globe-like scrolling is TODO. 
+
+Also, for now I'm just going to stick with OSM, but it's really not what I need.  Long term, what I should do is find/build and serve a vector tile set (maybe just borrow https://github.com/maplibre/demotiles).
+Relatedly, my plan is to serve the whole gamestate as geojson, but it would probably be better to serve it as tiles too
