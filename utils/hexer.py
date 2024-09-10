@@ -242,11 +242,12 @@ def get_normalisation_matrices(A: Vertex, B: Vertex, C: Vertex):
 
 
     # rotation 2 - bring b onto the x axis by a rotation around the z axis
-    cos_alpha=1/(sqrt(1+(B_after_Rot_1[1][0]/l)**2))
-    sin_alpha=(B_after_Rot_1[1][0]/l)/(sqrt(1+(B_after_Rot_1[1][0]/l)**2))
+    # note my alpha is the opposite direction to the classic matrix - so used sin(-a) =-sin(a) 
+    cos_alpha=B_after_Rot_1[0][0]/l
+    sin_alpha=B_after_Rot_1[1][0]/l
 
-    rot2_matr=np.array([[ cos_alpha,   -sin_alpha,   0 ],
-                        [ sin_alpha,   cos_alpha,    0 ],
+    rot2_matr=np.array([[ cos_alpha,   sin_alpha,   0 ],
+                        [ -sin_alpha,   cos_alpha,    0 ],
                         [ 0,           0,            1 ]])
     
 
@@ -408,8 +409,8 @@ def test_plot_denormalisation():
         print("Rot was good!")
         rot_good=True
     else:
-        print(f"Rot was bad :( \n The calculated rot was: \n{calced_denorm_rot}\n")
-        print(f"But the rot was: \n{test_denorm_rot}\n")
+        print(f"Rot was bad :( \n The calculated rotation matrix for denormalisation: \n{calced_denorm_rot}\n")
+        print(f"The denormalisation matrix used for generating the test case: \n{test_denorm_rot}\n")
 
     if np.allclose(calced_trans, test_trans):
         print("Trans was good!")
