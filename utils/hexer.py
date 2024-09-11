@@ -1,12 +1,13 @@
-from math import sqrt, cos, sin, asin, radians, degrees, isclose
+from math import sqrt, cos, sin, asin, atan, radians, degrees, isclose
 import numpy as np
 import matplotlib.pyplot as plt
 from copy import copy
 from itertools import combinations
+import json
 
 class Vertex:
     def __init__(self, x, y=None, z=0):
-        if type(x)==int and type(y)==int:
+        if type(x) in (int, float, np.float64) and type(y) in (int, float, np.float64):
             self.x = x
             self.y = y
             self.z = z
@@ -35,6 +36,8 @@ class Vertex:
                 print("Bad stuff! This matrix shape is unexpected")
                 print(x)
                 raise ValueError
+        else:
+            raise TypeError
        
     def distance(self, b):
         return sqrt((self.x-b.x)**2 +
@@ -70,7 +73,6 @@ def is_good_triangle(corners):
     return (isclose(corners[0].distance(corners[1]), 2, abs_tol=0.001) and
             isclose(corners[1].distance(corners[2]), 2, abs_tol=0.001) and
             isclose(corners[2].distance(corners[0]), 2, abs_tol=0.001))
-
 
 def generate_goldberg_triangle (m, n):
     A=Vertex(0,0,0)
@@ -246,7 +248,7 @@ def get_normalisation_matrices(A: Vertex, B: Vertex, C: Vertex) -> tuple[np.ndar
     denormalise_trans = -1 * trans_vec
     return  (denormalise_rot, denormalise_trans)
 
-def buil_icoso_map (m:int, n:int) -> list[Vertex]:
+def build_goldberg_vertices (m:int, n:int) -> list[Vertex]:
     φ = (1+sqrt(5))/2
     vertices=(Vertex(φ, 1,0), 
               Vertex(φ, -1, 0),
@@ -261,16 +263,21 @@ def buil_icoso_map (m:int, n:int) -> list[Vertex]:
                 Vertex(0, -φ, -1),
                 Vertex(0, -φ, 1))
     
-    triangles=[]#TODO
+    triangles=[tri for tri in combinations(vertices, 3) if 
+               (tri[0].distance(tri[1])==2 and
+                tri[1].distance(tri[2])==2 and
+                tri[2].distance(tri[0])==2
+                )]
 
     norm_tri, normalised_points=build_normalised_trimap(m, n)
     
     icoso_points=[]
 
     for tri in triangles:
-        rot, trans =get_normalisation_matrices(tri)
+        rot, trans =get_normalisation_matrices(tri[0], tri[1], tri[2])
         for point in normalised_points:
-            icoso_points.append(Vertex((rot @ point.to_np_vec)+trans))
+            icoso_points.append(Vertex((rot @ point.to_np_vec())+trans))
+    return icoso_points
 
 def nearest_neighbours(p: Vertex, points: list[Vertex], n=1) -> list[Vertex]:
     #find the n points closest to p
@@ -286,32 +293,64 @@ def nearest_neighbours(p: Vertex, points: list[Vertex], n=1) -> list[Vertex]:
     else:
         return points[:n]            
     
-
-def connect_icoso_points(icoso_points: list[Vertex]):
+def connect_goldberg_vertices(icoso_points: list[Vertex]):
     for point in icoso_points:
+        # i am a little scared about this - for eg, what about if the pentagons are super tiny? can points across the penta be closer than the nearest hexgrid point?
         point.connected_points+=nearest_neighbours(point, icoso_points, 3-len(point.connected_points))
 
 
+def point_to_long_lat(p: Vertex):
+    #TODO - this doesn't account for the period of tan being 180 bullshit - need to figure out if we are in quadrant 1 or quadrant 3 etc
+    lon=degrees(atan(p.x/p.y))
+    
+    lat=degrees(atan(p.z/(sqrt(p.x**2+p.y**2))))
+    
+    #TODO - fix this NaN case where we had an earlier divide by zero
+    if np.isnan(lat) or np.isnan(lon):
+        return (0, 0)
+    return (lon, lat)
 
+
+def geo_json_points(points: list[Vertex]):
+    features=[]
+    for i in range(len(points)):
+        features.append({"type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": point_to_long_lat(points[i])
+            },
+            "properties": {
+                "id" : i
+            }
+        })
+        
+        
+    geo={
+       "type": "FeatureCollection",
+       "features": features
+    }
+    with open("./feature_list.json", "w") as outp:
+        json.dump(geo, outp)
+    
+
+geo_json_points(build_goldberg_vertices(4, 2))
 
 
 """
-def build_icoso(m,n):
-    for tri in triangles:
-        icoso_map=[]
-        trans=<the translation vector to bring a point of tri to the origin>
-        rot=<the matrix by which tri would have to be rotated in order to normalise it - no idea how >
-        rerot=np.linalg.inv(rot)
-        for point in tri_map_points:
-            old_point=[point.x, point.y, point.z]
-            new_point=np.subtract(np.matmul(old_point, rerot), trans)
-            icoso_map.append(Vertex(new_point[0], new_point[1], new_point[2]))
-            
+in the end I decided fuck it, oblate spheroid is too hard to spell, geocentric to geodetic is too hard, my earth is a sphere.
 
-    tri, points = build_normalised_trimap(m,n)
-    for 
+def point_to_wgs84(Vertex):
+    #project out to the ellipsoid, let the intercept=P
+    #draw a plane tangent to the elipsoid at P
+    #draw a normal from the tangent plane
+    #measure the angle at which the normal intercepts the equatorial plan.  That's your lat.
+    #
+    # for lon, project p onto the equatorial plane.
+    # lon is just the polar angle.
+    lat=1, lon=1 #TODO
+    return lat, lon
+
 """
-
 
 
 

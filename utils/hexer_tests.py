@@ -196,16 +196,20 @@ def project_to_sphere(points):
 
 #test_plot_normalisation(4,2)
 
+def test_denormalisations():
+    print("--- TESTING Y ROTATION ---")
+    test_plot_denormalisation_y()
+    print("\n\n")
 
-print("--- TESTING Y ROTATION ---")
-test_plot_denormalisation_y()
-print("\n\n")
+    print("--- TESTING Z ROTATION ---")
+    test_plot_denormalisation_z()
+    print("\n\n")
+    print("--- TESTING X ROTATION ---")
+    test_plot_denormalisation_x()
+    print("\n\n")
+    print("--- TESTING COMPOUND ROTATION WITH TRANSLATION ---")
+    test_plot_denormalisation()
 
-print("--- TESTING Z ROTATION ---")
-test_plot_denormalisation_z()
-print("\n\n")
-print("--- TESTING X ROTATION ---")
-test_plot_denormalisation_x()
-print("\n\n")
-print("--- TESTING COMPOUND ROTATION WITH TRANSLATION ---")
-test_plot_denormalisation()
+points = [Vertex(cos(radians(theta)), sin(radians(theta)), 0) for theta in range(30, 360, 30)]
+
+geo_json_points(points)
