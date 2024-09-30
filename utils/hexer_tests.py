@@ -210,6 +210,58 @@ def test_denormalisations():
     print("--- TESTING COMPOUND ROTATION WITH TRANSLATION ---")
     test_plot_denormalisation()
 
-points = [Vertex(cos(radians(theta)), sin(radians(theta)), 0) for theta in range(30, 360, 30)]
 
-geo_json_points(points)
+def plot_3d_points(points: list[Vertex]):
+    fig=plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    for p in points:
+        ax.scatter(p.x, p.y, p.z)
+    plt.show()
+
+def plot_3d_surface_tri(faces: list[list[Vertex]]):
+    fig=plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    
+    meshx=[]
+    meshy=[]
+    meshz=[]
+    for f in faces:
+        for p in f:
+            meshx.append(p.x)
+            meshy.append(p.y)
+            meshz.append(p.z)
+
+    print(meshx)
+    print(meshy)
+    print(meshz)    
+    ax.plot_trisurf(meshx, meshy, meshz)
+    
+    plt.show()
+
+
+
+φ = (1+sqrt(5))/2
+vertices=(Vertex(φ, 1,0), 
+        Vertex(φ, -1, 0),
+        Vertex(-φ, -1,0),
+        Vertex(-φ, 1,0),
+        Vertex(1, 0,φ),
+        Vertex(-1, 0,φ),
+        Vertex(-1, 0,-φ),
+        Vertex(1, 0,-φ),
+        Vertex(0, φ, 1),
+        Vertex(0, φ, -1),
+        Vertex(0, -φ, -1),
+        Vertex(0, -φ, 1))
+    
+triangles=[tri for tri in combinations(vertices, 3) if 
+            (tri[0].distance(tri[1])==2 and
+            tri[1].distance(tri[2])==2 and
+            tri[2].distance(tri[0])==2
+            )]
+    
+
+
+plot_3d_surface_tri(triangles)
+print(triangles)
+print(f"Len Triangles: {len(triangles)}")
