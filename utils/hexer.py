@@ -1,4 +1,4 @@
-from math import sqrt, cos, sin, asin, atan, radians, degrees, isclose
+from math import sqrt, cos, sin, asin, atan, atan2, radians, degrees, isclose
 import numpy as np
 import matplotlib.pyplot as plt
 from copy import copy
@@ -273,7 +273,7 @@ def build_goldberg_vertices (m:int, n:int) -> list[Vertex]:
     
     icoso_points=[]
 
-    for tri in triangles:
+    for tri in triangles[2:3]:
         rot, trans =get_normalisation_matrices(tri[0], tri[1], tri[2])
         for point in normalised_points:
             icoso_points.append(Vertex((rot @ point.to_np_vec())+trans))
@@ -301,7 +301,7 @@ def connect_goldberg_vertices(icoso_points: list[Vertex]):
 
 def point_to_long_lat(p: Vertex):
     #TODO - this doesn't account for the period of tan being 180 bullshit - need to figure out if we are in quadrant 1 or quadrant 3 etc
-    lon=degrees(atan(p.x/p.y))
+    lon=degrees(atan2(p.x, p.y))
     
     lat=degrees(atan(p.z/(sqrt(p.x**2+p.y**2))))
     
